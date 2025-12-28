@@ -7,7 +7,7 @@ import { Button } from "./button";
 import { Ban } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
-import { getDateMonthsLater, getDateWeekLater } from "@/lib/utils";
+import { getDateMonthsLater, getDateWeekLater, getPermanentSuspensionDate } from "@/lib/utils";
 import { SuspendPopoverItem } from "./suspend-popover-item";
 
 type SuspendPopoverProps = {
@@ -66,6 +66,13 @@ export function SuspendPopover({ form, isSuspended }: SuspendPopoverProps) {
               form={form}
               title={t("durations.year", { count: 1 })}
               period={getDateMonthsLater(12)}
+            />
+          </li>
+          <li>
+            <SuspendPopoverItem
+              form={form}
+              title={t("durations.permanent")}
+              period={getPermanentSuspensionDate()}
             />
           </li>
         </ul>
