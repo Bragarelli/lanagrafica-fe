@@ -152,6 +152,10 @@ export function getDateMonthsLater(count: number) {
   return date.toISOString().split("T")[0];
 }
 
+export function getPermanentSuspensionDate() {
+  return "2999-12-31";
+}
+
 /**
  * Get province code from Italian city name
  * Returns the province sigla (2-letter code) for the given Italian city

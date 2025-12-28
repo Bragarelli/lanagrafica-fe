@@ -16,6 +16,7 @@ export function SuspendPopoverItem({
 }: SuspendPopoverItemProps) {
   return (
     <Button
+      type="button"
       size="sm"
       variant="suspended"
       onClick={() => {

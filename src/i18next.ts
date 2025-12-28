@@ -138,6 +138,7 @@ i18n
             month_other: "{{count}} months",
             week_one: "week",
             week_other: "{{count}} weeks",
+            permanent: "Permanent",
           },
           signature: {
             clear: "Clear",
@@ -307,6 +308,7 @@ i18n
             month_other: "{{count}} mesi",
             week_one: "settimana",
             week_other: "{{count}} settimane",
+            permanent: "Permanente",
           },
           signature: {
             clear: "Cancella",
