@@ -162,6 +162,7 @@ jobs:
           git push origin ${GITHUB_REF#refs/heads/}
 
       - name: Build and push Docker image
+        if: startsWith(github.ref, 'refs/heads/release/')
         uses: mr-smithers-excellent/docker-build-push@v5
         with:
           image: arc0t/lanagrafica-fe
@@ -170,6 +171,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           tags: ${{ steps.version.outputs.docker_tags }}
+
+      - name: Update GitOps repository
+        if: startsWith(github.ref, 'refs/heads/release/')
+        uses: Bragarelli/github-workflows/.github/workflows/update-gitops.yml@main
+        with:
+          service_name: "lanagrafica-fe"
+          image_tag: ${{ steps.version.outputs.version }}
+          docker_registry: "arc0t"
+        secrets:
+          MANIFEST_REPO_TOKEN: ${{ secrets.GITOPS_TOKEN }}
 
       - name: Summary
         run: |
