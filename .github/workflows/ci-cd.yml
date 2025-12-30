@@ -23,6 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Required for creating tags
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      should_update_gitops: ${{ steps.version.outputs.should_tag }}
 
     steps:
       - name: Checkout code
@@ -172,16 +175,6 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           tags: ${{ steps.version.outputs.docker_tags }}
 
-      - name: Update GitOps repository
-        if: startsWith(github.ref, 'refs/heads/release/')
-        uses: Bragarelli/github-workflows/.github/workflows/update-gitops.yml@main
-        with:
-          service_name: "lanagrafica-fe"
-          image_tag: ${{ steps.version.outputs.version }}
-          docker_registry: "arc0t"
-        secrets:
-          MANIFEST_REPO_TOKEN: ${{ secrets.GITOPS_TOKEN }}
-
       - name: Summary
         run: |
           echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
@@ -196,3 +189,15 @@ jobs:
           echo "- **MAJOR** (X.0.0): Breaking changes (commit message contains \`BREAKING CHANGE:\` or \`!:\`)" >> $GITHUB_STEP_SUMMARY
           echo "- **MINOR** (x.Y.0): New features (commit message starts with \`feat:\`)" >> $GITHUB_STEP_SUMMARY
           echo "- **PATCH** (x.y.Z): Bug fixes and other changes (commit message starts with \`fix:\`, \`chore:\`, \`docs:\`, etc.)" >> $GITHUB_STEP_SUMMARY
+
+  # Update GitOps repository (only for release branches)
+  update-gitops:
+    needs: build-and-deploy
+    if: startsWith(github.ref, 'refs/heads/release/')
+    uses: Bragarelli/github-workflows/.github/workflows/update-gitops.yml@main
+    with:
+      service_name: "lanagrafica-fe"
+      image_tag: ${{ needs.build-and-deploy.outputs.version }}
+      # docker_registry uses default value 'arc0t'
+    secrets:
+      MANIFEST_REPO_TOKEN: ${{ secrets.GITOPS_TOKEN }}
