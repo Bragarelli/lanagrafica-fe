@@ -231,9 +231,12 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "chore: update ${SERVICE_NAME} to ${IMAGE_TAG}
+            cat > /tmp/commit-msg.txt <<EOF
+          chore: update ${SERVICE_NAME} to ${IMAGE_TAG}
 
-Updated by CI/CD workflow"
+          Updated by CI/CD workflow
+          EOF
+            git commit -F /tmp/commit-msg.txt
             git push
             echo "✅ Changes pushed to lanagrafica-k8s"
           fi
