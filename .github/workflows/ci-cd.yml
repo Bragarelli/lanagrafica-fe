@@ -194,10 +194,46 @@ jobs:
   update-gitops:
     needs: build-and-deploy
     if: startsWith(github.ref, 'refs/heads/release/')
-    uses: Bragarelli/github-workflows/.github/workflows/update-gitops.yml@main
-    with:
-      service_name: "lanagrafica-fe"
-      image_tag: ${{ needs.build-and-deploy.outputs.version }}
-      # docker_registry uses default value 'arc0t'
-    secrets:
-      MANIFEST_REPO_TOKEN: ${{ secrets.GITOPS_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitOps repository
+        uses: actions/checkout@v4
+        with:
+          repository: Bragarelli/lanagrafica-k8s
+          token: ${{ secrets.GITOPS_TOKEN }}
+          path: gitops-repo
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Update image tag in values.yaml
+        working-directory: gitops-repo/helm-charts/lanagrafica
+        run: |
+          SERVICE_NAME="lanagrafica-fe"
+          IMAGE_TAG="${{ needs.build-and-deploy.outputs.version }}"
+
+          echo "Updating ${SERVICE_NAME} to ${IMAGE_TAG}"
+          yq eval -i ".${SERVICE_NAME}.image.tag = \"${IMAGE_TAG}\"" values.yaml
+          echo "✅ Updated values.yaml"
+
+      - name: Commit and push changes
+        working-directory: gitops-repo
+        run: |
+          SERVICE_NAME="lanagrafica-fe"
+          IMAGE_TAG="${{ needs.build-and-deploy.outputs.version }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add helm-charts/lanagrafica/values.yaml
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update ${SERVICE_NAME} to ${IMAGE_TAG}
+
+Updated by CI/CD workflow"
+            git push
+            echo "✅ Changes pushed to lanagrafica-k8s"
+          fi
